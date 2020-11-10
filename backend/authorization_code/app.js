@@ -1,12 +1,3 @@
-/**
- * This is an example of a basic node.js script that performs
- * the Authorization Code oAuth2 flow to authenticate against
- * the Spotify Accounts.
- *
- * For more information, read
- * https://developer.spotify.com/web-api/authorization-guide/#authorization_code_flow
- */
-
 var express = require('express'); // Express web server framework
 var request = require('request'); // "Request" library
 var cors = require('cors');
@@ -16,7 +7,8 @@ var cookieParser = require('cookie-parser');
 var client_id = 'd55ac39db811476c88d5e80051cca636'; // Your client id
 var client_secret = '8aa2c23cfbc44ab8932c6a8b852564fa'; // Your secret
 var redirect_uri = 'http://localhost:8888/callback'; // Your redirect uri
-
+var access_token;
+var refresh_token;
 /**
  * Generates a random string containing numbers and letters
  * @param  {number} length The length of the string
@@ -47,7 +39,7 @@ app.get('/login', function (req, res) {
 
   // your application requests authorization
 
-  var scope = 'user-read-private user-read-email playlist-read-collaborative playlist-read-private user-library-read';
+  var scope = 'user-read-private user-read-email playlist-read-collaborative playlist-read-private user-library-read user-top-read';
   res.redirect('https://accounts.spotify.com/authorize?' +
     querystring.stringify({
       response_type: 'code',
@@ -89,9 +81,8 @@ app.get('/callback', function (req, res) {
 
     request.post(authOptions, function (error, response, body) {
       if (!error && response.statusCode === 200) {
-
-        var access_token = body.access_token,
-          refresh_token = body.refresh_token;
+        access_token = body.access_token;
+        refresh_token = body.refresh_token;
 
         var options = {
           url: 'https://api.spotify.com/v1/me',
@@ -136,7 +127,7 @@ app.get('/refresh_token', function (req, res) {
 
   request.post(authOptions, function (error, response, body) {
     if (!error && response.statusCode === 200) {
-      var access_token = body.access_token;
+      access_token = body.access_token;
       res.send({
         'access_token': access_token
       });
@@ -144,46 +135,73 @@ app.get('/refresh_token', function (req, res) {
   });
 });
 
-app.get('/information', function (req, res) {
-  var code = req.query.code || null;
-  var authOptions = {
-    url: 'https://accounts.spotify.com/api/token',
-    form: {
-      code: code,
-      redirect_uri: redirect_uri,
-      grant_type: 'authorization_code'
-    },
-    headers: {
-      'Authorization': 'Basic ' + (new Buffer.from(client_id + ':' + client_secret).toString('base64'))
-    },
+app.get('/playlists', function (req, res) {
+  console.log(access_token)
+  var options = {
+    url: 'https://api.spotify.com/v1/me/playlists',
+    headers: { 'Authorization': 'Bearer ' + access_token },
     json: true
   };
-  // your application requests authorization
-  request.post(function (error, response, body) {
-    if (!error && response.statusCode === 200) {
+  // use the access token to access the Spotify Web API
+  request.get(options, function (error, response, body) {
+    if (error) {
+      console.log("error")
+    }
+    else {
+      console.log("response status problem", response, response.status)
+      console.log("-----")
+      console.log(response.body.items)
+    }
+  });
+});
 
-      var access_token = body.access_token,
-        refresh_token = body.refresh_token;
+app.get('/most-played-tracks', function (req, res) {
+  console.log(access_token)
+  var options = {
+    url: 'https://api.spotify.com/v1/me/top/tracks?limit=50',
+    headers: { 'Authorization': 'Bearer ' + access_token },
+    json: true
+  };
+  // use the access token to access the Spotify Web API
+  request.get(options, function (error, response, body) {
+    if (error) {
+      console.log("error")
+    }
+    else {
+      console.log("-----")
+      items = response.body.items
+      len = items.length
+      songs = []
+      for (var i = 0; i < len; i++) {
+        songs.push(items[i].name)
+      }
+      console.log(songs)
+    }
+  });
+});
 
-      var options = {
-        url: 'https://api.spotify.com/v1/me/playlists',
-        headers: { 'Authorization': 'Bearer ' + access_token },
 
-        json: true
-      };
-
-      // use the access token to access the Spotify Web API
-      request.get(options, function (error, response, body) {
-        console.log(body);
-      });
-
-      // we can also pass the token to the browser to make requests from there
-
-    } else {
-      res.redirect('/#' +
-        querystring.stringify({
-          error: 'invalid_token'
-        }));
+app.get('/most-played-artists', function (req, res) {
+  console.log(access_token)
+  var options = {
+    url: 'https://api.spotify.com/v1/me/top/artists',
+    headers: { 'Authorization': 'Bearer ' + access_token },
+    json: true
+  };
+  // use the access token to access the Spotify Web API
+  request.get(options, function (error, response, body) {
+    if (error) {
+      console.log("error")
+    }
+    else {
+      console.log("-----")
+      items = response.body.items
+      len = items.length
+      artists = []
+      for (var i = 0; i < len; i++) {
+        artists.push(items[i].name)
+      }
+      console.log(artists)
     }
   });
 });
