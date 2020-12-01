@@ -39,7 +39,7 @@ app.get('/login', function (req, res) {
 
   // your application requests authorization
 
-  var scope = 'user-read-private user-read-email playlist-read-collaborative playlist-read-private user-library-read user-top-read';
+  var scope = 'user-read-private user-read-email playlist-read-collaborative playlist-read-private user-library-read user-top-read user-follow-read user-library-modify user-library-read';
   res.redirect('https://accounts.spotify.com/authorize?' +
     querystring.stringify({
       response_type: 'code',
@@ -170,12 +170,18 @@ app.get('/most-played-tracks', function (req, res) {
     else {
       console.log("-----")
       items = response.body.items
+      console.log(items)
       len = items.length
       songs = []
       for (var i = 0; i < len; i++) {
         songs.push(items[i].name)
       }
       console.log(songs)
+
+      ids = []
+      for (var i = 0; i < len; i++) {
+        ids.push(items[i].id)
+      }
     }
   });
 });
@@ -184,7 +190,7 @@ app.get('/most-played-tracks', function (req, res) {
 app.get('/most-played-artists', function (req, res) {
   console.log(access_token)
   var options = {
-    url: 'https://api.spotify.com/v1/me/top/artists',
+    url: 'https://api.spotify.com/v1/me/top/artists?limit=50',
     headers: { 'Authorization': 'Bearer ' + access_token },
     json: true
   };
@@ -202,6 +208,89 @@ app.get('/most-played-artists', function (req, res) {
         artists.push(items[i].name)
       }
       console.log(artists)
+
+      ids = []
+      for (var i = 0; i < len; i++) {
+        ids.push(items[i].id)
+      }
+      console.log(ids)
+    }
+  });
+});
+
+app.get('/followed-artists', function (req, res) {
+  console.log(access_token)
+  var options = {
+    url: 'https://api.spotify.com/v1/me/following?type=artist&limit=50',
+    headers: { 'Authorization': 'Bearer ' + access_token },
+    json: true
+  };
+  // use the access token to access the Spotify Web API
+  request.get(options, function (error, response, body) {
+    if (error) {
+      console.log("error")
+    }
+    else {
+      console.log("-----")
+      items = response.body.artists.items
+      len = items.length
+      ids = []
+      for (var i = 0; i < len; i++) {
+        ids.push(items[i].id)
+      }
+      console.log(ids)
+    }
+  });
+});
+
+app.get('/saved-albums', function (req, res) {
+  console.log(access_token)
+  var options = {
+    url: 'https://api.spotify.com/v1/me/albums?limit=50',
+    headers: { 'Authorization': 'Bearer ' + access_token },
+    json: true
+  };
+  // use the access token to access the Spotify Web API
+  request.get(options, function (error, response, body) {
+    if (error) {
+      console.log("error")
+    }
+    else {
+      console.log("-----")
+      items = response.body.items
+      console.log(items)
+      len = items.length
+      ids = []
+      for (var i = 0; i < len; i++) {
+        ids.push(items[i].album.id)
+      }
+      console.log(ids)
+    }
+  });
+});
+
+app.get('/saved-tracks', function (req, res) {
+  console.log(access_token)
+  var options = {
+    url: 'https://api.spotify.com/v1/me/tracks?limit=50',
+    headers: { 'Authorization': 'Bearer ' + access_token },
+    json: true
+  };
+  // use the access token to access the Spotify Web API
+  request.get(options, function (error, response, body) {
+    if (error) {
+      console.log("error")
+    }
+    else {
+      console.log("-----")
+      items = response.body.items
+      console.log(items)
+      // len = items.length
+      // ids = []
+      // for (var i = 0; i < len; i++) {
+      //   ids.push(items[i].album.id)
+      // }
+      // console.log(ids)
     }
   });
 });
