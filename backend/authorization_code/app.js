@@ -170,7 +170,6 @@ app.get('/most-played-tracks', function (req, res) {
     else {
       console.log("-----")
       items = response.body.items
-      console.log(items)
       len = items.length
       songs = []
       for (var i = 0; i < len; i++) {
@@ -182,6 +181,7 @@ app.get('/most-played-tracks', function (req, res) {
       for (var i = 0; i < len; i++) {
         ids.push(items[i].id)
       }
+      console.log(ids)
     }
   });
 });
@@ -239,6 +239,11 @@ app.get('/followed-artists', function (req, res) {
         ids.push(items[i].id)
       }
       console.log(ids)
+      names = []
+      for (var i = 0; i < len; i++) {
+        names.push(items[i].name)
+      }
+      console.log(names)
     }
   });
 });
@@ -265,6 +270,33 @@ app.get('/saved-albums', function (req, res) {
         ids.push(items[i].album.id)
       }
       console.log(ids)
+      names = []
+      for (var i = 0; i < len; i++) {
+        names.push(items[i].album.name)
+      }
+      console.log(names)
+    }
+  });
+});
+
+app.get('/get-artist-album', function (req, res) {
+  console.log(req.query)
+  var options = {
+    url: 'https://api.spotify.com/v1/tracks/6tlan2FHMyIKBRR62zxusZ',
+    headers: { 'Authorization': 'Bearer ' + access_token },
+    json: true
+  };
+  // use the access token to access the Spotify Web API
+  request.get(options, function (error, response, body) {
+    if (error) {
+      console.log("error")
+    }
+    else {
+      console.log("-----")
+      album = response.body.album.name
+      console.log("album : ", album)
+      artist = response.body.artists[0].name
+      console.log("artist : ", artist)
     }
   });
 });
