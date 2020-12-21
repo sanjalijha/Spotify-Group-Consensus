@@ -148,9 +148,15 @@ app.get('/playlists', function (req, res) {
       console.log("error")
     }
     else {
-      console.log("response status problem", response, response.status)
       console.log("-----")
-      console.log(response.body.items)
+
+      items = response.body.items
+      len = items.length
+      playlists = []
+      for (var i = 0; i < len; i++) {
+        playlists.push(items[i].name)
+      }
+      console.log(playlists)
     }
   });
 });
@@ -280,9 +286,9 @@ app.get('/saved-albums', function (req, res) {
 });
 
 app.get('/get-artist-album', function (req, res) {
-  console.log(req.query)
+  id = req.query.id
   var options = {
-    url: 'https://api.spotify.com/v1/tracks/6tlan2FHMyIKBRR62zxusZ',
+    url: 'https://api.spotify.com/v1/tracks/' + id,
     headers: { 'Authorization': 'Bearer ' + access_token },
     json: true
   };
@@ -297,6 +303,25 @@ app.get('/get-artist-album', function (req, res) {
       console.log("album : ", album)
       artist = response.body.artists[0].name
       console.log("artist : ", artist)
+    }
+  });
+});
+
+
+app.get('/get-audio-features', function (req, res) {
+  id = req.query.id
+  var options = {
+    url: 'https://api.spotify.com/v1/audio-features/' + id,
+    headers: { 'Authorization': 'Bearer ' + access_token },
+    json: true
+  };
+  // use the access token to access the Spotify Web API
+  request.get(options, function (error, response, body) {
+    if (error) {
+      console.log("error")
+    }
+    else {
+      console.log(response.body)
     }
   });
 });
