@@ -68,6 +68,8 @@ def create_vertices(data, x):
     vertices = []
     for i in x:
         for p in range(no_of_users):
+            print(p)
+            print(i)
             vertices = vertices + data[p][i]
     return set(vertices)
 
@@ -79,42 +81,6 @@ def create_indices(start_ind, input_set):
         hashmap[i] = ind
         ind += 1
     return hashmap
-
-
-tracks_set = create_vertices(data, [0, 1])
-no_of_tracks = len(tracks_set)
-tracks_start_ind = no_of_users
-tracks_indices = create_indices(tracks_start_ind, tracks_set)
-# print(tracks_indices)
-
-albums_set = create_vertices(data, [4])
-no_of_albums = len(albums_set)
-albums_start_ind = tracks_start_ind + no_of_tracks
-albums_indices = create_indices(albums_start_ind, albums_set)
-# print(albums_indices)
-
-artists_set = create_vertices(data, [2, 3])
-no_of_artists = len(artists_set)
-artists_start_ind = albums_start_ind + no_of_albums
-artists_indices = create_indices(artists_start_ind, artists_set)
-# print(artists_indices)
-
-e3 = user_track(data, [0, 1])
-no_of_e3 = len(e3)
-print(no_of_e3)
-
-no_of_e7 = album_track_size(album_track_data)
-print(no_of_e7)
-# def add_edge(data, data_type):
-
-
-# Data we have [n * (d * x)]
-# d = 5
-# most played tracks
-# saved tracks
-# most played artists
-# followed artists
-# saved albums
 
 
 '''
@@ -154,9 +120,35 @@ def remove_duplicates(mat, mat_type):
             if entry[0] not in checker:
                 checker.add(entry[0])
                 new_mat.append(entry)
-
     return new_mat
 
 
+tracks_set = create_vertices(data, [0, 1])
+no_of_tracks = len(tracks_set)
+tracks_start_ind = no_of_users
+tracks_indices = create_indices(tracks_start_ind, tracks_set)
+# print(tracks_indices)
+
+albums_set = create_vertices(data, [4])
+no_of_albums = len(albums_set)
+albums_start_ind = tracks_start_ind + no_of_tracks
+albums_indices = create_indices(albums_start_ind, albums_set)
+# print(albums_indices)
+
+artists_set = create_vertices(data, [2, 3])
+no_of_artists = len(artists_set)
+artists_start_ind = albums_start_ind + no_of_albums
+artists_indices = create_indices(artists_start_ind, artists_set)
+# print(artists_indices)
+
+e3 = user_track(data, [0, 1])
+no_of_e3 = len(e3)
+print(no_of_e3)
+
+e7 = remove_duplicates(album_track_data, alb)
+print(e7)
+print(len(e7))
+
+
 song_features = remove_duplicates(all_song_features, 'trk')
-print(knn_track_similarity_edges(np.array(song_features), 4))
+# print(knn_track_similarity_edges(np.array(song_features), 4))
