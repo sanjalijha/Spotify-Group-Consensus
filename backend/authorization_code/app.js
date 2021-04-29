@@ -3,6 +3,7 @@ var request = require('request'); // "Request" library
 var cors = require('cors');
 var querystring = require('querystring');
 var cookieParser = require('cookie-parser');
+const { features } = require('process');
 
 var client_id = 'd55ac39db811476c88d5e80051cca636'; // Your client id
 var client_secret = '8aa2c23cfbc44ab8932c6a8b852564fa'; // Your secret
@@ -178,16 +179,44 @@ app.get('/most-played-tracks', function (req, res) {
       items = response.body.items
       len = items.length
       songs = []
-      for (var i = 0; i < len; i++) {
-        songs.push(items[i].name)
-      }
-      console.log(songs)
-
       ids = []
       for (var i = 0; i < len; i++) {
+        songs.push(items[i].name)
         ids.push(items[i].id)
       }
       console.log(ids)
+
+      for (var i = 0; i < len; i++) {
+        var options = {
+          url: 'https://api.spotify.com/v1/audio-features/' + ids[i],
+          headers: { 'Authorization': 'Bearer ' + access_token },
+          json: true
+        };
+        // use the access token to access the Spotify Web API
+        request.get(options, function (error, response, body) {
+          if (error) {
+            console.log("error")
+          }
+          else {
+            track = response.body
+            feat = []
+            feat.push(track.id)
+            feat.push(track.danceability)
+            feat.push(track.energy)
+            feat.push(track.key)
+            feat.push(track.loudness)
+            feat.push(track.mode)
+            feat.push(track.speechiness)
+            feat.push(track.acousticness)
+            feat.push(track.instrumentalness)
+            feat.push(track.liveness)
+            feat.push(track.valence)
+            feat.push(track.tempo)
+            // console.log(feat)
+            // console.log(',')
+          }
+        });
+      }
     }
   });
 });
@@ -255,7 +284,6 @@ app.get('/followed-artists', function (req, res) {
 });
 
 app.get('/saved-albums', function (req, res) {
-  console.log(access_token)
   var options = {
     url: 'https://api.spotify.com/v1/me/albums?limit=50',
     headers: { 'Authorization': 'Bearer ' + access_token },
@@ -269,18 +297,47 @@ app.get('/saved-albums', function (req, res) {
     else {
       console.log("-----")
       items = response.body.items
-      console.log(items)
       len = items.length
       ids = []
-      for (var i = 0; i < len; i++) {
-        ids.push(items[i].album.id)
-      }
-      console.log(ids)
       names = []
       for (var i = 0; i < len; i++) {
+        ids.push(items[i].album.id)
         names.push(items[i].album.name)
       }
       console.log(names)
+      console.log(ids)
+
+      for (var i = 0; i < len; i++) {
+        console.log(names[i])
+        var options = {
+          url: 'https://api.spotify.com/v1/albums/' + ids[i],
+          headers: { 'Authorization': 'Bearer ' + access_token },
+          json: true
+        };
+        console.log(ids[i])
+
+
+        // use the access token to access the Spotify Web API
+        request.get(options, function (error, response, body) {
+          if (error) {
+            console.log("error")
+          }
+          else {
+            console.log("-----")
+            items = response.body.tracks.items
+            len = items.length
+            songs = []
+            songs.push(response.body.uri.substring(14,))
+            for (var j = 0; j < len; j++) {
+              songs.push(items[j].id)
+            }
+            console.log(songs)
+          }
+        });
+
+
+      }
+
     }
   });
 });
@@ -308,23 +365,7 @@ app.get('/get-artist-album', function (req, res) {
 });
 
 
-app.get('/get-audio-features', function (req, res) {
-  id = req.query.id
-  var options = {
-    url: 'https://api.spotify.com/v1/audio-features/' + id,
-    headers: { 'Authorization': 'Bearer ' + access_token },
-    json: true
-  };
-  // use the access token to access the Spotify Web API
-  request.get(options, function (error, response, body) {
-    if (error) {
-      console.log("error")
-    }
-    else {
-      console.log(response.body)
-    }
-  });
-});
+
 
 app.get('/saved-tracks', function (req, res) {
   console.log(access_token)
@@ -342,15 +383,51 @@ app.get('/saved-tracks', function (req, res) {
       console.log("-----")
       items = response.body.items
       console.log(items)
-      // len = items.length
-      // ids = []
-      // for (var i = 0; i < len; i++) {
-      //   ids.push(items[i].album.id)
-      // }
-      // console.log(ids)
+      len = items.length
+      ids = []
+      songs = []
+      for (var i = 0; i < len; i++) {
+        ids.push(items[i].track.id)
+        songs.push(items[i].track.name)
+      }
+      console.log(ids)
+      console.log(songs)
+      for (var i = 0; i < len; i++) {
+        var options = {
+          url: 'https://api.spotify.com/v1/audio-features/' + ids[i],
+          headers: { 'Authorization': 'Bearer ' + access_token },
+          json: true
+        };
+        // use the access token to access the Spotify Web API
+        request.get(options, function (error, response, body) {
+          if (error) {
+            console.log("error")
+          }
+          else {
+            track = response.body
+            feat = []
+            feat.push(track.id)
+            feat.push(track.danceability)
+            feat.push(track.energy)
+            feat.push(track.key)
+            feat.push(track.loudness)
+            feat.push(track.mode)
+            feat.push(track.speechiness)
+            feat.push(track.acousticness)
+            feat.push(track.instrumentalness)
+            feat.push(track.liveness)
+            feat.push(track.valence)
+            feat.push(track.tempo)
+            // console.log(feat)
+            // console.log(',')
+          }
+        });
+      }
     }
   });
 });
+
+
 
 console.log('Listening on 8888');
 app.listen(8888);
