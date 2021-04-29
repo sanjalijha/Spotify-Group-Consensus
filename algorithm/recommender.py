@@ -31,7 +31,7 @@ import demo_data as dd
 # followed artists
 # favorite albums
 # get artist's albums
-from demo_data import data, album_track_data
+from demo_data import data, album_track_data, artist_albums_data
 
 no_of_users = len(data)
 no_of_tracks = 0
