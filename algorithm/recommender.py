@@ -3,6 +3,9 @@ import scipy
 import sklearn
 from sklearn import metrics
 from demo_data import data, album_track_data, artist_albums_data, all_song_features
+import sys
+
+np.set_printoptions(threshold=sys.maxsize)
 
 # H := |V| x |E| vertex-hyperedge incidence matrix
 # De := diagonal matrix consisting of hyperedge degrees
@@ -37,11 +40,13 @@ no_of_users = len(data)
 no_of_tracks = 0
 no_of_albums = 0
 no_of_artists = 0
+no_of_vertices = 0
 
 no_of_e3 = 0
 no_of_e7 = 0
 no_of_e8 = 0
 no_of_e9 = 0
+no_of_edges = 0
 
 
 def user_track(data, x):
@@ -68,8 +73,6 @@ def create_vertices(data, x):
     vertices = []
     for i in x:
         for p in range(no_of_users):
-            print(p)
-            print(i)
             vertices = vertices + data[p][i]
     return set(vertices)
 
@@ -143,12 +146,122 @@ artists_indices = create_indices(artists_start_ind, artists_set)
 
 e3 = user_track(data, [0, 1])
 no_of_e3 = len(e3)
-print(no_of_e3)
 
-e7 = remove_duplicates(album_track_data, alb)
-print(e7)
-print(len(e7))
+e7 = remove_duplicates(album_track_data, 'alb')
+no_of_e7 = len(e7)
+
+e8 = remove_duplicates(artist_albums_data,'art')
+no_of_e8 = len(e8)
 
 
 song_features = remove_duplicates(all_song_features, 'trk')
-# print(knn_track_similarity_edges(np.array(song_features), 4))
+e9 = knn_track_similarity_edges(np.array(song_features), 4)
+no_of_e9 = len(e9)
+
+no_of_edges = no_of_e9 + no_of_e8 + no_of_e7 + no_of_e3
+no_of_vertices = no_of_users + no_of_tracks + no_of_albums + no_of_artists
+
+H = np.zeros((no_of_vertices,no_of_edges))
+print(H.shape)
+
+for i in range(no_of_e3):
+  user = int(e3[i][0])
+  track_id = e3[i][1]
+  track_index = tracks_indices[track_id]
+  H[user,i] = 1
+  H[track_index,i] = 1
+
+for i in range(no_of_e7):
+  ind = no_of_e3 + i
+  edge = e7[i]
+  for j in range(len(edge)):
+    if j == 0:
+      row = albums_indices[edge[j]]
+      H[row,ind] = 1
+    else:
+      if edge[j] in tracks_indices.keys():
+        row = tracks_indices[edge[j]]
+        H[row,ind] = 1
+
+for i in range(no_of_e8):
+  ind = no_of_e3 + no_of_e7 + i
+  edge = e8[i]
+  for j in range(len(edge)):
+    if j == 0:
+      row = artists_indices[edge[j]]
+      H[row,ind] = 1
+    else:
+      if edge[j] in albums_indices.keys():
+        row = albums_indices[edge[j]]
+        H[row,ind] = 1
+
+for i in range(no_of_e9):
+  ind = no_of_e3 + no_of_e7 + no_of_e8 + i
+  track_1 = tracks_indices[e9[i][0]]
+  track_2 = tracks_indices[e9[i][1]]
+  H[track_1,ind] = 1
+  H[track_2,ind] = 1
+
+De_arr = np.sum(H,axis=0)
+De = np.zeros((no_of_edges,no_of_edges))
+for i in range(no_of_edges):
+  De[i,i] = 1/De_arr[i]
+
+W = np.zeros((no_of_edges, no_of_edges))
+limit = 50
+weight = 50
+norm = 25
+for e in range(limit):
+    W[e, e] = weight/norm
+    weight -= 1
+weight = 50
+for e in range(limit, 2*limit):
+    W[e, e] = weight/norm
+    weight -= 1
+weight = 50
+for e in range(2*limit, 3*limit):
+    W[e, e] = weight/norm
+    weight -= 1
+weight = 50
+for e in range(3*limit, 4*limit):
+    W[e, e] = weight/norm
+    weight -= 1
+for e in range(4*limit, 8*limit):
+    W[e, e] = 1/norm
+for e in range(8*limit, 8*limit+no_of_e7+no_of_e8):
+    W[e, e] = 1
+s = 0
+for e, i in zip(range(8*limit+no_of_e7+no_of_e8, no_of_edges), range(no_of_e9)):
+    W[e, e] = e9[i][2]
+
+Dv = np.zeros((no_of_vertices,no_of_vertices))
+
+for i in range(no_of_vertices):
+  total = 0
+  for j in range(no_of_edges):
+    total += H[i,j]*W[j,j]
+  if total != 0:
+    Dv[i,i] = 1/(total**0.5)
+  else:
+    Dv[i,i] = 0
+
+A = Dv@H@W@De@H.T@Dv
+print(A.shape)
+
+y = np.zeros(no_of_vertices)
+y[:4] = 1
+
+f = np.linalg.inv((np.identity(no_of_vertices) - (2/3)*A))@y
+# print(f)
+
+indices = np.argsort(f*-1)
+
+songs = []
+idx = 0
+
+for i in range(len(indices)):
+  for key, value in tracks_indices.items():
+    if value == indices[i]:
+      songs.append(key)
+  
+print(songs[0:20])
