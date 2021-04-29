@@ -2,7 +2,8 @@ import numpy as np
 import scipy
 import sklearn
 from sklearn import metrics
-import demo_data as dd
+from demo_data import data, album_track_data, artist_albums_data, all_song_features
+
 # H := |V| x |E| vertex-hyperedge incidence matrix
 # De := diagonal matrix consisting of hyperedge degrees
 # Dv := diagonal matrix consisting of weighted vertex degrees
@@ -31,7 +32,6 @@ import demo_data as dd
 # followed artists
 # favorite albums
 # get artist's albums
-from demo_data import data, album_track_data, artist_albums_data
 
 no_of_users = len(data)
 no_of_tracks = 0
@@ -140,16 +140,23 @@ def knn_track_similarity_edges(tracks_mat, k):
     return edges
 
 
-def remove_duplicates(mat):
+def remove_duplicates(mat, mat_type):
     checker = set()
     new_mat = []
-    for entry in mat:
-        if entry[0] not in checker:
-            checker.add(entry[0])
-            new_mat.append(entry)
+    if mat_type == 'alb' or mat_type == 'art':
+        for person in mat:
+            for entry in person:
+                if entry[0] not in checker:
+                    checker.add(entry[0])
+                    new_mat.append(entry)
+    elif mat_type == 'trk':
+        for entry in mat:
+            if entry[0] not in checker:
+                checker.add(entry[0])
+                new_mat.append(entry)
 
     return new_mat
 
 
-song_features = remove_duplicates(dd.all_song_features)
+song_features = remove_duplicates(all_song_features, 'trk')
 print(knn_track_similarity_edges(np.array(song_features), 4))
