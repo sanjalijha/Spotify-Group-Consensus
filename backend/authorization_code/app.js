@@ -215,11 +215,43 @@ app.get('/most-played-artists', function (req, res) {
       }
       console.log(artists)
 
-      ids = []
+      var ids = []
       for (var i = 0; i < len; i++) {
         ids.push(items[i].id)
       }
       console.log(ids)
+
+      var no_of_artists = ids.length
+      for (var i = 0; i < no_of_artists; i++) {
+        var options = {
+          url: 'https://api.spotify.com/v1/artists/' + ids[i] + '/albums?market=US',
+          headers: { 'Authorization': 'Bearer ' + access_token },
+          json: true
+        };
+        request.get(options, function (error, response, body) {
+          if (error) {
+            console.log("error")
+          }
+          else {
+            // console.log("-----")
+            items = response.body.items
+            var arr = []
+            var artist = items[0].artists[0].id
+            arr.push(artist)
+            var no_of_items = items.length
+            var map = new Map()
+            for (var i = 0; i < no_of_items; i++) {
+              map.set(items[i].name, items[i].id)
+            }
+            const iterator = map.values()
+            for (var i = 0; i < map.size; i++) {
+              arr.push(iterator.next().value)
+            }
+            console.log(arr)
+            console.log(',')
+          }
+        })
+      }
     }
   });
 });
@@ -240,16 +272,53 @@ app.get('/followed-artists', function (req, res) {
       console.log("-----")
       items = response.body.artists.items
       len = items.length
-      ids = []
+      artists = []
+      for (var i = 0; i < len; i++) {
+        artists.push(items[i].name)
+      }
+      console.log(artists)
+
+      var ids = []
       for (var i = 0; i < len; i++) {
         ids.push(items[i].id)
       }
       console.log(ids)
-      names = []
-      for (var i = 0; i < len; i++) {
-        names.push(items[i].name)
+
+      var no_of_artists = ids.length
+      for (var i = 0; i < no_of_artists; i++) {
+        // console.log('[' + ids[i] + ", ")
+        var options = {
+          url: 'https://api.spotify.com/v1/artists/' + ids[i] + '/albums',
+          headers: { 'Authorization': 'Bearer ' + access_token },
+          json: true
+        }
+        request.get(options, function (error, response, body, options) {
+          if (error) {
+            console.log("error")
+          }
+          else {
+            // var artist_id = options.url.substring(35)
+            // var artist_id = artist_id.substring(0, artist_id.length - 7)
+            // console.log('[' + options.url.substring(35) + ',')
+            // console.log("-----")
+            items = response.body.items
+            var arr = []
+            var artist = items[0].artists[0].id
+            arr.push(artist)
+            var no_of_items = items.length
+            var map = new Map()
+            for (var i = 0; i < no_of_items; i++) {
+              map.set(items[i].name, items[i].id)
+            }
+            const iterator = map.values()
+            for (var i = 0; i < map.size; i++) {
+              arr.push(iterator.next().value)
+            }
+            console.log(arr)
+            console.log(',')
+          }
+        })
       }
-      console.log(names)
     }
   });
 });
@@ -342,12 +411,12 @@ app.get('/saved-tracks', function (req, res) {
       console.log("-----")
       items = response.body.items
       console.log(items)
-      // len = items.length
-      // ids = []
-      // for (var i = 0; i < len; i++) {
-      //   ids.push(items[i].album.id)
-      // }
-      // console.log(ids)
+      len = items.length
+      ids = []
+      for (var i = 0; i < len; i++) {
+        ids.push(items[i].track.id)
+      }
+      console.log(ids)
     }
   });
 });
