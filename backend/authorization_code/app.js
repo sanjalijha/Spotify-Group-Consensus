@@ -496,25 +496,29 @@ app.get('/saved-tracks', function (req, res) {
   });
 });
 
+//copypaste recos
+algo_rec = ['7eJMfftS33KTjuF7lTsMCx']
 // getting songs from ids final step
-// app.get('/algorithm-rec', function (req, res) {
-//   for (var i = 0; i < 1; i++) {
-//     var options = {
-//       url: 'https://api.spotify.com/v1/tracks?' + 'ids=3n3Ppam7vgaVa1iaRUc9Lp,3twNvmDtFQtAd5gMKedhLD',
-//       headers: { 'Authorization': 'Bearer ' + access_token },
-//       json: true
-//     };
-//     request.get(options, function (error, response, body) {
-//       if (error) {
-//         console.log("error")
-//       }
-//       else {
-//         console.log(response.body.name)
+app.get('/algorithm-rec', function (req, res) {
+  console.log(req.query)
+  for (var i = 0; i < algo_rec.length; i++) {
+    var options = {
+      url: 'https://api.spotify.com/v1/tracks/' + algo_rec[i],
+      headers: { 'Authorization': 'Bearer ' + access_token },
+      json: true
+    };
+    request.get(options, function (error, response, body) {
+      if (error) {
+        console.log("error")
+      }
+      else {
+        // console.log(response)
+        console.log(response.body.name)
 
-//       }
-//     })
-//   }
-// });
+      }
+    })
+  }
+});
 
 console.log('Listening on 8888');
 app.listen(8888);
